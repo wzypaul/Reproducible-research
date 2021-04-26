@@ -1,0 +1,69 @@
+######################################
+##  Loading and preprocessing the data
+######################################
+  
+library(ggplot2)
+
+activity<- read.csv("activity.csv")
+
+summary(activity)
+
+######################################
+##  1. What is mean total number of steps taken per day?
+######################################
+
+t4 <- aggregate(steps~date,activity,sum,na.rm=T)
+
+hist(t4$steps,main='Histogram number of steps each day',xlab = 'Steps each day')
+
+# calculate mean
+mean(t4$steps)
+
+# calculate median
+median(t4$steps)
+
+######################################
+##  2. What is the average daily activity pattern?
+######################################
+
+t3 <- aggregate(steps~interval,activity,mean,na.rm=T)
+
+plot(t3$interval,t3$steps, type='l',col =1, main='The average daily activity pattern',xlab='5-mins Time Interval',ylab='Average number of steps')
+
+# The interval with the most step
+t3$interval[which.max((t3$steps))]
+
+######################################
+##  3. Imputing missing values
+######################################
+
+#Convert NA to mean
+activity$steps[is.na(activity$steps)==T] <- mean(activity$steps, na.rm=TRUE)
+
+#historam number of steps each day computed
+t2 <- aggregate(steps~date,activity,sum)
+hist(t2$steps,main='Historam number of steps each day computed',xlab = 'Steps each day')
+
+#Mean and Median computed
+mean(t2$steps)
+median(t2$steps)
+
+######################################
+##  4. Are there differences in activity patterns between weekdays and weekends?
+######################################
+
+#Create a function to convert date to weekend and weekday
+wkday <- function(dat_val) {
+  wd <- weekdays(as.Date(dat_val, '%Y-%m-%d'))
+  if  (!(wd == 'Saturday' || wd == 'Sunday')) {
+    x <- 'Weekday'
+  } 
+  else {
+    x <- 'Weekend'
+  }
+  x
+}
+
+#Make the plot
+activity.Day<- aggregate(steps~interval+Day, activity,mean, na.rm =TRUE)
+ggplot(activity.Day, aes(x = interval, y = steps, color = Day))+ geom_line() + labs(title = "Average daily steps by date type", x = "Interval", y = "Average number of steps") + facet_wrap(~Day, ncol = 1, nrow = 2) 
