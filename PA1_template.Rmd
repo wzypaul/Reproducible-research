@@ -1,0 +1,78 @@
+---
+title: "PA1_template"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This assignment makes use of data from a personal activity monitoring device. This device collects data at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
+
+##  Loading and preprocessing the data
+
+```{r}
+library(ggplot2)
+activity<- read.csv("activity.csv")
+summary(activity)
+```
+
+## What is mean total number of steps taken per day?
+
+```{r}
+t4 <- aggregate(steps~date,activity,sum,na.rm=T)
+hist(t4$steps,main='Histogram number of steps each day',xlab = 'Steps each day')
+
+# calculate mean
+mean(t4$steps)
+
+# calculate median
+median(t4$steps)
+```
+
+## What is the average daily activity pattern?
+
+```{r}
+t3 <- aggregate(steps~interval,activity,mean,na.rm=T)
+
+plot(t3$interval,t3$steps, type='l',col =1, main='The average daily activity pattern',xlab='5-mins Time Interval',ylab='Average number of steps')
+
+# The interval with the most step
+t3$interval[which.max((t3$steps))]
+```
+
+## Imputing missing values
+
+```{r}
+#Convert NA to mean
+activity$steps[is.na(activity$steps)==T] <- mean(activity$steps, na.rm=TRUE)
+
+#historam number of steps each day computed
+t2 <- aggregate(steps~date,activity,sum)
+hist(t2$steps,main='Historam number of steps each day computed',xlab = 'Steps each day')
+
+#Mean and Median computed
+mean(t2$steps)
+median(t2$steps)
+```
+
+## Are there differences in activity patterns between weekdays and weekends?
+
+```{r}
+#Create a function to convert date to weekend and weekday
+
+d <- activity$date
+d <- as.POSIXct(d, format = "%Y-%m-%d")
+activity$date <- d
+
+wkvector <- weekdays(activity$date)
+test <- wkvector %in% c("Saturday", "Sunday")
+wkvector[test] = "Weekend"
+wkvector[!test] = "Weekday"
+activity <- cbind(activity, day.of.week = factor(wkvector))
+
+#Make the plot
+imstep<- aggregate(steps~interval+day.of.week, activity,mean, na.rm =TRUE)
+ggplot(imstep, aes(x = interval, y = steps))+ geom_line(color = "blue") + facet_grid(day.of.week ~ .) + labs(title = "Average daily steps by date type", x = "Interval", y = "Average number of steps")
+```
+
